@@ -1,6 +1,6 @@
 namespace Worker;
 
-public class Worker(ILogger<Worker> logger) : BackgroundService
+public class DocumentWorker(ILogger<DocumentWorker> logger) : BackgroundService
 {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
@@ -8,7 +8,7 @@ public class Worker(ILogger<Worker> logger) : BackgroundService
         {
             if (logger.IsEnabled(LogLevel.Information))
             {
-                logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
+                logger.LogInformation("Worker running at: {Time}", DateTimeOffset.Now);
             }
             await Task.Delay(1000, stoppingToken);
         }

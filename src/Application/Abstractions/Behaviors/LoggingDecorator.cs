@@ -15,21 +15,25 @@ internal static class LoggingDecorator
     {
         public async Task<Result<TResponse>> Handle(TCommand command, CancellationToken cancellationToken)
         {
-            string commandName = typeof(TCommand).Name;
-
-            logger.LogInformation("Processing command {Command}", commandName);
+            if (logger.IsEnabled(LogLevel.Information))
+            {
+                logger.LogInformation("Processing command {Command}", typeof(TCommand).Name);
+            }
 
             Result<TResponse> result = await innerHandler.Handle(command, cancellationToken);
 
             if (result.IsSuccess)
             {
-                logger.LogInformation("Completed command {Command}", commandName);
+                if (logger.IsEnabled(LogLevel.Information))
+                {
+                    logger.LogInformation("Completed command {Command}", typeof(TCommand).Name);
+                }
             }
             else
             {
                 using (LogContext.PushProperty("Error", result.Error, true))
                 {
-                    logger.LogError("Completed command {Command} with error", commandName);
+                    logger.LogError("Completed command {Command} with error", typeof(TCommand).Name);
                 }
             }
 
@@ -45,21 +49,25 @@ internal static class LoggingDecorator
     {
         public async Task<Result> Handle(TCommand command, CancellationToken cancellationToken)
         {
-            string commandName = typeof(TCommand).Name;
-
-            logger.LogInformation("Processing command {Command}", commandName);
+            if (logger.IsEnabled(LogLevel.Information))
+            {
+                logger.LogInformation("Processing command {Command}", typeof(TCommand).Name);
+            }
 
             Result result = await innerHandler.Handle(command, cancellationToken);
 
             if (result.IsSuccess)
             {
-                logger.LogInformation("Completed command {Command}", commandName);
+                if (logger.IsEnabled(LogLevel.Information))
+                {
+                    logger.LogInformation("Completed command {Command}", typeof(TCommand).Name);
+                }
             }
             else
             {
                 using (LogContext.PushProperty("Error", result.Error, true))
                 {
-                    logger.LogError("Completed command {Command} with error", commandName);
+                    logger.LogError("Completed command {Command} with error", typeof(TCommand).Name);
                 }
             }
 
@@ -75,21 +83,25 @@ internal static class LoggingDecorator
     {
         public async Task<Result<TResponse>> Handle(TQuery query, CancellationToken cancellationToken)
         {
-            string queryName = typeof(TQuery).Name;
-
-            logger.LogInformation("Processing query {Query}", queryName);
+            if (logger.IsEnabled(LogLevel.Information))
+            {
+                logger.LogInformation("Processing query {Query}", typeof(TQuery).Name);
+            }
 
             Result<TResponse> result = await innerHandler.Handle(query, cancellationToken);
 
             if (result.IsSuccess)
             {
-                logger.LogInformation("Completed query {Query}", queryName);
+                if (logger.IsEnabled(LogLevel.Information))
+                {
+                    logger.LogInformation("Completed query {Query}", typeof(TQuery).Name);
+                }
             }
             else
             {
                 using (LogContext.PushProperty("Error", result.Error, true))
                 {
-                    logger.LogError("Completed query {Query} with error", queryName);
+                    logger.LogError("Completed query {Query} with error", typeof(TQuery).Name);
                 }
             }
 
