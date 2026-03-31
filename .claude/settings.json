@@ -20,7 +20,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "echo '{\"systemMessage\": \"Context compaction triggered. Before compacting: update CLAUDE.md in the project root — tick off completed items in the Faz checklists and note any architecture/implementation decisions made this session so they survive compaction.\"}'",
+            "command": "echo '{\"systemMessage\": \"Context compaction triggered. Before compacting: update CLAUDE.md in the project root — tick off completed items in the Phase checklists and note any architecture/implementation decisions made this session so they survive compaction.\"}'",
             "timeout": 5
           }
         ]

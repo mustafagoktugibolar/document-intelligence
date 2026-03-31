@@ -1,54 +1,54 @@
 # Document Intelligence Platform — CLAUDE.md
 
-## Proje Nedir?
+## What Is This Project?
 
-AI destekli belge işleme platformu. Kullanıcıların yüklediği belgeleri saklayan değil, anlayan, sınıflandıran, semantik arama yapılabilir kılan ve iş kurallarıyla aksiyon üretebilen enterprise bir sistem.
+An AI-powered document processing platform. An enterprise system that doesn't just store documents — it understands them, classifies them, makes them semantically searchable, and can trigger actions based on business rules.
 
-## Mevcut Durum
+## Current Status
 
-Clean Architecture template üzerine inşa edilıyor (Users + Todos CRUD hazır). Document Intelligence feature'ları henüz başlangıç aşamasında:
+Built on a Clean Architecture template (Users + Todos CRUD are ready). Document Intelligence features are at an early stage:
 
-| Katman | Durum |
-|--------|-------|
-| `Domain/Documents/DocumentStatus.cs` | Tamamlandı — enum tanımlı |
-| `Domain/Documents/Document.cs` | Yapılmadı |
-| `Domain/Documents/DocumentVersion.cs` | Yapılmadı |
-| `Domain/Processing/ProcessingJob.cs` | Yapılmadı |
-| `Domain/Events/` | Boş |
-| `Domain/ValueObjects/` | Boş |
-| `Application/Documents/` | Yok |
-| `Infrastructure/Documents/` | Yok |
-| `Web.Api/Endpoints/Documents/` | Yok |
-| `Worker/` | Sadece iskelet var |
+| Layer | Status |
+|-------|--------|
+| `Domain/Documents/DocumentStatus.cs` | Done — enum defined |
+| `Domain/Documents/Document.cs` | Not done |
+| `Domain/Documents/DocumentVersion.cs` | Not done |
+| `Domain/Processing/ProcessingJob.cs` | Not done |
+| `Domain/Events/` | Empty |
+| `Domain/ValueObjects/` | Empty |
+| `Application/Documents/` | Missing |
+| `Infrastructure/Documents/` | Missing |
+| `Web.Api/Endpoints/Documents/` | Missing |
+| `Worker/` | Skeleton only |
 
-## Altyapı (Docker Compose)
+## Infrastructure (Docker Compose)
 
-- **PostgreSQL** (pgvector/pgvector:pg16) — vektör araması için pgvector extension hazır
-- **RabbitMQ** 3.13 — async event pipeline için
-- **Seq** — structured log arama
-- **web-api** + **worker** servisleri ayrı container
+- **PostgreSQL** (pgvector/pgvector:pg16) — pgvector extension ready for vector search
+- **RabbitMQ** 3.13 — for async event pipeline
+- **Seq** — structured log search
+- **web-api** + **worker** services in separate containers
 
-## NuGet Paketleri (Directory.Packages.props'ta zaten tanımlı)
+## NuGet Packages (already defined in Directory.Packages.props)
 
-| Paket | Kullanım Amacı |
-|-------|----------------|
+| Package | Purpose |
+|---------|---------|
 | `Anthropic.SDK` | Claude API — summarization, Q&A, classification |
-| `OpenAI` | Alternatif AI provider |
+| `OpenAI` | Alternative AI provider |
 | `PdfPig` | PDF text extraction |
 | `DocumentFormat.OpenXml` | DOCX/XLSX extraction |
-| `Microsoft.ML.Tokenizers` | Chunking için token sayımı |
+| `Microsoft.ML.Tokenizers` | Token counting for chunking |
 | `Pgvector.EntityFrameworkCore` | Vector similarity search |
 | `RabbitMQ.Client` | Event-driven pipeline |
 | `Polly` | Retry policy (AI/storage calls) |
 
-## Domain Akış (DocumentStatus enum)
+## Domain Flow (DocumentStatus enum)
 
 ```
 Uploaded → Processing → TextExtracted → Chunked → Embedded → Summarized → Completed
                                                                           ↘ Failed
 ```
 
-## Planlanan Domain Modeli
+## Planned Domain Model
 
 ### Document Aggregate
 - Id, Title, OriginalFileName, MimeType, Size, Status, UploadedBy, UploadedAt, CurrentVersionId
@@ -57,7 +57,7 @@ Uploaded → Processing → TextExtracted → Chunked → Embedded → Summarize
 ### DocumentVersion Entity
 - VersionNumber, FileHash, ExtractedTextReference, Language, ProcessingStatus
 
-### ProcessingJob Aggregate (Document'tan ayrı lifecycle)
+### ProcessingJob Aggregate (separate lifecycle from Document)
 - JobId, JobType (TextExtraction / OCR / Chunking / Embedding / Summarization / Classification / Report)
 - Status, RetryCount, StartedAt, CompletedAt, ErrorMessage
 
@@ -65,74 +65,74 @@ Uploaded → Processing → TextExtracted → Chunked → Embedded → Summarize
 - ChunkIndex, Content, TokenCount, EmbeddingVector (pgvector)
 
 ### KnowledgeItem
-- Chunk / Summary / Entity / Keyword abstract yapı
+- Abstract structure: Chunk / Summary / Entity / Keyword
 
 ### PromptTemplate
-- Domain objesi — AI davranışlarını sistemin parçası yapar
+- Domain object — makes AI behaviors a first-class part of the system
 - contract_summary, invoice_extraction, maintenance_risk_analysis
 
-## Planlanan Özellikler
+## Planned Features
 
-1. **Upload & Ingestion** — PDF, DOCX, TXT, CSV, XLSX, image kabul
+1. **Upload & Ingestion** — Accept PDF, DOCX, TXT, CSV, XLSX, image
 2. **Text Extraction** — Strategy pattern: `IDocumentExtractor` → PdfExtractor, DocxExtractor, ExcelExtractor, ImageOcrExtractor
-3. **Chunking** — anlamlı parçalar, sequence no, token limiti (ML.Tokenizers)
-4. **Embedding Generation** — chunk başına vektör, pgvector'da sakla
+3. **Chunking** — meaningful chunks, sequence no, token limit (ML.Tokenizers)
+4. **Embedding Generation** — vector per chunk, stored in pgvector
 5. **Classification & Tagging** — Contract / Invoice / Maintenance Report / etc.
 6. **Summarization** — executive summary, key points, risk summary
-7. **Question Answering** — RAG: retrieval → chunk seç → cevap üret (kaynak göster)
-8. **Similar Document Discovery** — cosine similarity ile
-9. **Rule-Based Actions** — "Invoice" → finance workflow, risk skoru yüksek → alert
-10. **Report Generation** — export edilebilir
+7. **Question Answering** — RAG: retrieval → select chunks → generate answer (with source citations)
+8. **Similar Document Discovery** — via cosine similarity
+9. **Rule-Based Actions** — "Invoice" → finance workflow, high risk score → alert
+10. **Report Generation** — exportable
 
-## Mimari Kararlar
+## Architecture Decisions
 
-- **Monolith-first**, servis sınırları domain'e göre ayrışık — ileride microservice'e split edilebilir
-- Worker servisi RabbitMQ'dan event tüketir, pipeline step'lerini işler
-- AI provider abstraction zorunlu (`IEmbeddingService`, `ISummaryService`, vb.) — vendor lock-in yok
-- Her processing step ayrı job → retry, observe edilebilir
-- Versioning: aynı belgenin güncel hali yüklenebilir, önceki version korunur
+- **Monolith-first**, service boundaries separated by domain — can be split into microservices later
+- Worker service consumes events from RabbitMQ, processes pipeline steps
+- AI provider abstraction required (`IEmbeddingService`, `ISummaryService`, etc.) — no vendor lock-in
+- Each processing step is a separate job → retryable, observable
+- Versioning: a new version of the same document can be uploaded, previous versions are preserved
 
-## Geliştirme Sırası
+## Development Order
 
-### Faz 1 — Domain & Infrastructure
+### Phase 1 — Domain & Infrastructure
 - [ ] Document aggregate + DocumentVersion entity
 - [ ] ProcessingJob aggregate
 - [ ] Domain events (DocumentUploaded, StatusChanged, JobCompleted)
-- [ ] EF Core konfigürasyonları (Documents, Chunks, Jobs tabloları + pgvector)
+- [ ] EF Core configurations (Documents, Chunks, Jobs tables + pgvector)
 - [ ] Migration
 
-### Faz 2 — Upload & Ingestion
+### Phase 2 — Upload & Ingestion
 - [ ] UploadDocument command + handler
-- [ ] Dosya depolama (local storage / S3 abstraction)
+- [ ] File storage (local storage / S3 abstraction)
 - [ ] DocumentUploaded event → RabbitMQ publish
 - [ ] Web.Api upload endpoint
 
-### Faz 3 — Processing Pipeline (Worker)
+### Phase 3 — Processing Pipeline (Worker)
 - [ ] RabbitMQ consumer (Worker)
 - [ ] IDocumentExtractor + PdfExtractor + DocxExtractor
 - [ ] Chunking service (token-aware)
 - [ ] Job state machine (status transitions)
 
-### Faz 4 — AI Layer
+### Phase 4 — AI Layer
 - [ ] IEmbeddingService + AnthropicEmbeddingService / OpenAiEmbeddingService
-- [ ] ISummaryService + implementasyon
-- [ ] IClassificationService + implementasyon
-- [ ] Embedding'leri DB'ye yaz (pgvector)
+- [ ] ISummaryService + implementation
+- [ ] IClassificationService + implementation
+- [ ] Write embeddings to DB (pgvector)
 
-### Faz 5 — Search & Q&A
+### Phase 5 — Search & Q&A
 - [ ] Semantic search endpoint (cosine similarity)
 - [ ] Question answering endpoint (RAG)
 - [ ] Similar document discovery
 
-### Faz 6 — Polish
+### Phase 6 — Polish
 - [ ] Rule-based action engine
 - [ ] Report generation
 - [ ] Notification service
 - [ ] Audit logging
 
-## Kod Kuralları
+## Code Conventions
 
-- Mevcut template pattern'larını takip et (Result<T>, ICommand/IQuery, Minimal API endpoint'leri)
-- Her command/query kendi klasöründe (Application/Documents/Upload/, vs.)
-- Domain'de primitive obsession yok — value object kullan (DocumentId, ChunkIndex, vs.)
-- AI servis interface'leri Infrastructure'da implement edilir, Application'da sadece abstraction
+- Follow existing template patterns (Result<T>, ICommand/IQuery, Minimal API endpoints)
+- Each command/query in its own folder (Application/Documents/Upload/, etc.)
+- No primitive obsession in Domain — use value objects (DocumentId, ChunkIndex, etc.)
+- AI service interfaces are implemented in Infrastructure; Application layer has abstractions only
