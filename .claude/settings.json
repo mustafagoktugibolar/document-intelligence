@@ -1,0 +1,30 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "FILE=$(jq -r '.tool_input.file_path // empty' 2>/dev/null); [[ \"$FILE\" != *.cs ]] && exit 0; SLNX=$(ls /Users/goktugibolar/dev/document-intelligence/*.slnx 2>/dev/null | head -1); OUTPUT=$(dotnet build \"$SLNX\" --no-restore /p:RunAnalyzers=false -q 2>&1); ERRORS=$(echo \"$OUTPUT\" | grep \" error CS\"); if [ -n \"$ERRORS\" ]; then echo \"$ERRORS\"; exit 2; fi",
+            "timeout": 30,
+            "statusMessage": "Checking build...",
+            "asyncRewake": true
+          }
+        ]
+      }
+    ],
+    "PreCompact": [
+      {
+        "matcher": "auto",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '{\"systemMessage\": \"Context compaction triggered. Before compacting: update CLAUDE.md in the project root — tick off completed items in the Faz checklists and note any architecture/implementation decisions made this session so they survive compaction.\"}'",
+            "timeout": 5
+          }
+        ]
+      }
+    ]
+  }
+}
