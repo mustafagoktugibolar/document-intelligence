@@ -6,8 +6,8 @@ services:
       context: .
       dockerfile: src/Web.Api/Dockerfile
     ports:
-      - 5000:8080
-      - 5001:8081
+      - 5050:8080
+      - 5051:8081
     depends_on:
       postgres:
         condition: service_healthy
@@ -78,3 +78,15 @@ services:
       - ACCEPT_EULA=Y
     ports:
       - 8081:80
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin-doc
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=admin@admin.com
+      - PGADMIN_DEFAULT_PASSWORD=admin
+    ports:
+      - 5080:80
+    depends_on:
+      postgres:
+        condition: service_healthy

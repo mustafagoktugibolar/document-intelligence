@@ -22,13 +22,15 @@ builder.Services.AddEndpoints(Assembly.GetExecutingAssembly());
 
 WebApplication app = builder.Build();
 
+app.UseCors("VueDev");
+
 app.MapEndpoints();
+
+app.ApplyMigrations();
 
 if (app.Environment.IsDevelopment())
 {
     app.UseSwaggerWithUi();
-
-    app.ApplyMigrations();
 }
 
 app.MapHealthChecks("health", new HealthCheckOptions

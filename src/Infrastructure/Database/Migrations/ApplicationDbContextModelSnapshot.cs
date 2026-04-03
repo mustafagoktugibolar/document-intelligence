@@ -19,10 +19,213 @@ namespace Infrastructure.Database.Migrations
 #pragma warning disable 612, 618
             modelBuilder
                 .HasDefaultSchema("public")
-                .HasAnnotation("ProductVersion", "8.0.7")
+                .HasAnnotation("ProductVersion", "10.0.1")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
+
+            modelBuilder.Entity("Domain.Documents.Document", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("file_name");
+
+                    b.Property<long>("FileSizeBytes")
+                        .HasColumnType("bigint")
+                        .HasColumnName("file_size_bytes");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer")
+                        .HasColumnName("status");
+
+                    b.Property<string>("StorageKey")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("storage_key");
+
+                    b.Property<int>("TotalChunks")
+                        .HasColumnType("integer")
+                        .HasColumnName("total_chunks");
+
+                    b.Property<DateTime>("UploadedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("uploaded_at");
+
+                    b.Property<Guid>("UploadedByUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("uploaded_by_user_id");
+
+                    b.Property<int>("Visibility")
+                        .HasColumnType("integer")
+                        .HasColumnName("visibility");
+
+                    b.HasKey("Id")
+                        .HasName("pk_documents");
+
+                    b.HasIndex("UploadedByUserId")
+                        .HasDatabaseName("ix_documents_uploaded_by_user_id");
+
+                    b.ToTable("documents", "public");
+                });
+
+            modelBuilder.Entity("Domain.Documents.DocumentSection", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("DocumentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("document_id");
+
+                    b.Property<int>("EndChunkIndex")
+                        .HasColumnType("integer")
+                        .HasColumnName("end_chunk_index");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("name");
+
+                    b.Property<string>("SourceTag")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("source_tag");
+
+                    b.Property<int>("StartChunkIndex")
+                        .HasColumnType("integer")
+                        .HasColumnName("start_chunk_index");
+
+                    b.Property<int>("Visibility")
+                        .HasColumnType("integer")
+                        .HasColumnName("visibility");
+
+                    b.HasKey("Id")
+                        .HasName("pk_document_sections");
+
+                    b.HasIndex("DocumentId")
+                        .HasDatabaseName("ix_document_sections_document_id");
+
+                    b.ToTable("document_sections", "public");
+                });
+
+            modelBuilder.Entity("Domain.Organizations.Organization", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("name");
+
+                    b.HasKey("Id")
+                        .HasName("pk_organizations");
+
+                    b.ToTable("organizations", "public");
+                });
+
+            modelBuilder.Entity("Domain.Organizations.OrganizationMember", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime>("JoinedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("joined_at");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.Property<int>("Role")
+                        .HasColumnType("integer")
+                        .HasColumnName("role");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_organization_members");
+
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("ix_organization_members_user_id");
+
+                    b.HasIndex("OrganizationId", "UserId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_organization_members_organization_id_user_id");
+
+                    b.ToTable("organization_members", "public");
+                });
+
+            modelBuilder.Entity("Domain.Processing.ProcessingJob", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime?>("CompletedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("completed_at");
+
+                    b.Property<Guid>("DocumentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("document_id");
+
+                    b.Property<string>("ErrorMessage")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("error_message");
+
+                    b.Property<int>("JobStatus")
+                        .HasColumnType("integer")
+                        .HasColumnName("job_status");
+
+                    b.Property<int>("JobType")
+                        .HasColumnType("integer")
+                        .HasColumnName("job_type");
+
+                    b.Property<int>("RetryCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("retry_count");
+
+                    b.Property<DateTime?>("StartedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("started_at");
+
+                    b.HasKey("Id")
+                        .HasName("pk_processing_jobs");
+
+                    b.HasIndex("DocumentId")
+                        .HasDatabaseName("ix_processing_jobs_document_id");
+
+                    b.ToTable("processing_jobs", "public");
+                });
 
             modelBuilder.Entity("Domain.Todos.TodoItem", b =>
                 {
@@ -52,7 +255,7 @@ namespace Infrastructure.Database.Migrations
                         .HasColumnType("boolean")
                         .HasColumnName("is_completed");
 
-                    b.Property<List<string>>("Labels")
+                    b.PrimitiveCollection<List<string>>("Labels")
                         .IsRequired()
                         .HasColumnType("text[]")
                         .HasColumnName("labels");
@@ -111,6 +314,132 @@ namespace Infrastructure.Database.Migrations
                     b.ToTable("users", "public");
                 });
 
+            modelBuilder.Entity("Domain.Documents.Document", b =>
+                {
+                    b.HasOne("Domain.Users.User", null)
+                        .WithMany()
+                        .HasForeignKey("UploadedByUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_documents_users_uploaded_by_user_id");
+
+                    b.OwnsMany("Domain.Documents.AccessEntry", "AccessEntries", b1 =>
+                        {
+                            b1.Property<Guid>("id")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("uuid")
+                                .HasColumnName("id");
+
+                            b1.Property<int>("Permission")
+                                .HasColumnType("integer")
+                                .HasColumnName("permission");
+
+                            b1.Property<string>("PrincipalId")
+                                .IsRequired()
+                                .HasMaxLength(100)
+                                .HasColumnType("character varying(100)")
+                                .HasColumnName("principal_id");
+
+                            b1.Property<int>("PrincipalType")
+                                .HasColumnType("integer")
+                                .HasColumnName("principal_type");
+
+                            b1.Property<Guid>("document_id")
+                                .HasColumnType("uuid")
+                                .HasColumnName("document_id");
+
+                            b1.HasKey("id");
+
+                            b1.HasIndex("document_id")
+                                .HasDatabaseName("ix_document_access_entries_document_id");
+
+                            b1.ToTable("document_access_entries", "public");
+
+                            b1.WithOwner()
+                                .HasForeignKey("document_id")
+                                .HasConstraintName("fk_document_access_entries_documents_document_id");
+                        });
+
+                    b.Navigation("AccessEntries");
+                });
+
+            modelBuilder.Entity("Domain.Documents.DocumentSection", b =>
+                {
+                    b.HasOne("Domain.Documents.Document", null)
+                        .WithMany("Sections")
+                        .HasForeignKey("DocumentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_document_sections_documents_document_id");
+
+                    b.OwnsMany("Domain.Documents.AccessEntry", "AccessEntries", b1 =>
+                        {
+                            b1.Property<Guid>("id")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("uuid")
+                                .HasColumnName("id");
+
+                            b1.Property<int>("Permission")
+                                .HasColumnType("integer")
+                                .HasColumnName("permission");
+
+                            b1.Property<string>("PrincipalId")
+                                .IsRequired()
+                                .HasMaxLength(100)
+                                .HasColumnType("character varying(100)")
+                                .HasColumnName("principal_id");
+
+                            b1.Property<int>("PrincipalType")
+                                .HasColumnType("integer")
+                                .HasColumnName("principal_type");
+
+                            b1.Property<Guid>("section_id")
+                                .HasColumnType("uuid")
+                                .HasColumnName("section_id");
+
+                            b1.HasKey("id")
+                                .HasName("pk_document_section_access_entries");
+
+                            b1.HasIndex("section_id")
+                                .HasDatabaseName("ix_document_section_access_entries_section_id");
+
+                            b1.ToTable("document_section_access_entries", "public");
+
+                            b1.WithOwner()
+                                .HasForeignKey("section_id")
+                                .HasConstraintName("fk_document_section_access_entries_document_sections_section_id");
+                        });
+
+                    b.Navigation("AccessEntries");
+                });
+
+            modelBuilder.Entity("Domain.Organizations.OrganizationMember", b =>
+                {
+                    b.HasOne("Domain.Organizations.Organization", null)
+                        .WithMany("Members")
+                        .HasForeignKey("OrganizationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_organization_members_organizations_organization_id");
+
+                    b.HasOne("Domain.Users.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_organization_members_users_user_id");
+                });
+
+            modelBuilder.Entity("Domain.Processing.ProcessingJob", b =>
+                {
+                    b.HasOne("Domain.Documents.Document", null)
+                        .WithMany()
+                        .HasForeignKey("DocumentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_processing_jobs_documents_document_id");
+                });
+
             modelBuilder.Entity("Domain.Todos.TodoItem", b =>
                 {
                     b.HasOne("Domain.Users.User", null)
@@ -119,6 +448,16 @@ namespace Infrastructure.Database.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_todo_items_users_user_id");
+                });
+
+            modelBuilder.Entity("Domain.Documents.Document", b =>
+                {
+                    b.Navigation("Sections");
+                });
+
+            modelBuilder.Entity("Domain.Organizations.Organization", b =>
+                {
+                    b.Navigation("Members");
                 });
 #pragma warning restore 612, 618
         }

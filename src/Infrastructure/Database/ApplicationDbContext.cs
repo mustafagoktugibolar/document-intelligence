@@ -1,4 +1,7 @@
 ﻿using Application.Abstractions.Data;
+using Domain.Documents;
+using Domain.Organizations;
+using Domain.Processing;
 using Domain.Todos;
 using Domain.Users;
 using Infrastructure.DomainEvents;
@@ -15,6 +18,16 @@ public sealed class ApplicationDbContext(
     public DbSet<User> Users { get; set; }
 
     public DbSet<TodoItem> TodoItems { get; set; }
+
+    public DbSet<Organization> Organizations { get; set; }
+
+    public DbSet<OrganizationMember> OrganizationMembers { get; set; }
+
+    public DbSet<Document> Documents { get; set; }
+
+    public DbSet<DocumentSection> DocumentSections { get; set; }
+
+    public DbSet<ProcessingJob> ProcessingJobs { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
