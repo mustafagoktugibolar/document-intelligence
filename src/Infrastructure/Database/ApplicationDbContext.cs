@@ -27,10 +27,14 @@ public sealed class ApplicationDbContext(
 
     public DbSet<DocumentSection> DocumentSections { get; set; }
 
+    public DbSet<DocumentChunk> DocumentChunks { get; set; }
+
     public DbSet<ProcessingJob> ProcessingJobs { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.HasPostgresExtension("vector");
+
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
 
         modelBuilder.HasDefaultSchema(Schemas.Default);

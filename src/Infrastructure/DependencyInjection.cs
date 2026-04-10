@@ -1,13 +1,20 @@
 ﻿using System.Text;
+using Application.Abstractions.AI;
 using Application.Abstractions.Authentication;
 using Application.Abstractions.Data;
 using Application.Abstractions.Documents;
+using Application.Abstractions.Messaging;
+using Application.Abstractions.Storage;
 using Infrastructure.Authentication;
 using Infrastructure.Authorization;
 using Infrastructure.Database;
 using Infrastructure.Documents;
+using Infrastructure.AI;
+using Infrastructure.Documents.Extractors;
 using Infrastructure.DomainEvents;
+using Infrastructure.Messaging;
 using Infrastructure.Organizations;
+using Infrastructure.Storage;
 using Infrastructure.Time;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
@@ -28,9 +35,23 @@ public static class DependencyInjection
         services
             .AddServices()
             .AddDatabase(configuration)
+            .AddStorageServices()
+            .AddDocumentProcessing()
+            .AddAiServices()
+            .AddMessaging(configuration)
             .AddHealthChecks(configuration)
             .AddAuthenticationInternal(configuration)
             .AddAuthorizationInternal();
+
+    public static IServiceCollection AddInfrastructureForWorker(
+        this IServiceCollection services,
+        IConfiguration configuration) =>
+        services
+            .AddServices()
+            .AddDatabase(configuration)
+            .AddStorageServices()
+            .AddDocumentProcessing()
+            .AddAiServices();
 
     private static IServiceCollection AddServices(this IServiceCollection services)
     {
@@ -44,6 +65,37 @@ public static class DependencyInjection
         return services;
     }
 
+    private static IServiceCollection AddStorageServices(this IServiceCollection services)
+    {
+        services.AddScoped<IFileStorageService, LocalFileStorageService>();
+        return services;
+    }
+
+    private static IServiceCollection AddAiServices(this IServiceCollection services)
+    {
+        services.AddSingleton<IEmbeddingService, OpenAiEmbeddingService>();
+        services.AddSingleton<ISummaryService, ClaudeSummaryService>();
+        services.AddSingleton<IClassificationService, ClaudeClassificationService>();
+        return services;
+    }
+
+    private static IServiceCollection AddDocumentProcessing(this IServiceCollection services)
+    {
+        services.AddScoped<IDocumentExtractor, PdfExtractor>();
+        services.AddScoped<IDocumentExtractor, DocxExtractor>();
+        services.AddScoped<IDocumentExtractor, TxtExtractor>();
+        services.AddSingleton<IChunkingService, ChunkingService>();
+        return services;
+    }
+
+    private static IServiceCollection AddMessaging(this IServiceCollection services, IConfiguration configuration)
+    {
+        RabbitMqSettings settings = configuration.GetSection("RabbitMQ").Get<RabbitMqSettings>() ?? new RabbitMqSettings();
+        services.AddSingleton(settings);
+        services.AddSingleton<IRabbitMQPublisher, RabbitMQPublisher>();
+        return services;
+    }
+
     private static IServiceCollection AddDatabase(this IServiceCollection services, IConfiguration configuration)
     {
         string? connectionString = configuration.GetConnectionString("Database");
@@ -51,7 +103,9 @@ public static class DependencyInjection
         services.AddDbContext<ApplicationDbContext>(
             options => options
                 .UseNpgsql(connectionString, npgsqlOptions =>
-                    npgsqlOptions.MigrationsHistoryTable(HistoryRepository.DefaultTableName, Schemas.Default))
+                    npgsqlOptions
+                        .MigrationsHistoryTable(HistoryRepository.DefaultTableName, Schemas.Default)
+                        .UseVector())
                 .UseSnakeCaseNamingConvention());
 
         services.AddScoped<IApplicationDbContext>(sp => sp.GetRequiredService<ApplicationDbContext>());

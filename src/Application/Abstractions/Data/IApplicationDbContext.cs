@@ -15,6 +15,7 @@ public interface IApplicationDbContext
     DbSet<OrganizationMember> OrganizationMembers { get; }
     DbSet<Document> Documents { get; }
     DbSet<DocumentSection> DocumentSections { get; }
+    DbSet<DocumentChunk> DocumentChunks { get; }
     DbSet<ProcessingJob> ProcessingJobs { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);

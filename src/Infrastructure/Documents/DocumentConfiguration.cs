@@ -13,6 +13,8 @@ internal sealed class DocumentConfiguration : IEntityTypeConfiguration<Document>
 
         builder.Property(d => d.FileName).HasMaxLength(500).IsRequired();
         builder.Property(d => d.StorageKey).HasMaxLength(1000).IsRequired();
+        builder.Property(d => d.Summary).HasMaxLength(4000);
+        builder.Property(d => d.Classification).HasMaxLength(200);
 
         builder.Property(d => d.Status).HasConversion<int>();
         builder.Property(d => d.Visibility).HasConversion<int>();

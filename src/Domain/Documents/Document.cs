@@ -16,6 +16,8 @@ public sealed class Document : Entity
     public DocumentStatus Status { get; set; }
     public DocumentVisibility Visibility { get; set; }
     public int TotalChunks { get; set; }
+    public string? Summary { get; set; }
+    public string? Classification { get; set; }
     public DateTime UploadedAt { get; set; }
 
     public IReadOnlyList<AccessEntry> AccessEntries => _accessEntries.AsReadOnly();
@@ -50,6 +52,16 @@ public sealed class Document : Entity
     public void UpdateStatus(DocumentStatus newStatus)
     {
         Status = newStatus;
+    }
+
+    public void SetSummary(string summary)
+    {
+        Summary = summary;
+    }
+
+    public void SetClassification(string classification)
+    {
+        Classification = classification;
     }
 
     public void SetTotalChunks(int count)

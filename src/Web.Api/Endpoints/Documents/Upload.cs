@@ -1,5 +1,7 @@
 using Application.Abstractions.Messaging;
+using Application.Abstractions.Storage;
 using Application.Documents.Upload;
+using Microsoft.AspNetCore.Mvc;
 using SharedKernel;
 using Web.Api.Extensions;
 using Web.Api.Infrastructure;
@@ -8,27 +10,25 @@ namespace Web.Api.Endpoints.Documents;
 
 internal sealed class Upload : IEndpoint
 {
-    public sealed class Request
-    {
-        public Guid OrganizationId { get; set; }
-        public string FileName { get; set; } = string.Empty;
-        public string StorageKey { get; set; } = string.Empty;
-        public long FileSizeBytes { get; set; }
-    }
-
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
         app.MapPost("documents", async (
-            Request request,
+            [FromForm] Guid organizationId,
+            IFormFile file,
+            IFileStorageService storageService,
             ICommandHandler<UploadDocumentCommand, Guid> handler,
             CancellationToken cancellationToken) =>
         {
-            var command = new UploadDocumentCommand
+            await using Stream stream = file.OpenReadStream();
+            string storageKey = await storageService.UploadAsync(
+                stream, file.FileName, organizationId.ToString(), cancellationToken);
+
+            UploadDocumentCommand command = new()
             {
-                OrganizationId = request.OrganizationId,
-                FileName = request.FileName,
-                StorageKey = request.StorageKey,
-                FileSizeBytes = request.FileSizeBytes
+                OrganizationId = organizationId,
+                FileName = file.FileName,
+                StorageKey = storageKey,
+                FileSizeBytes = file.Length
             };
 
             Result<Guid> result = await handler.Handle(command, cancellationToken);
@@ -36,6 +36,7 @@ internal sealed class Upload : IEndpoint
             return result.Match(id => Results.Created($"documents/{id}", id), CustomResults.Problem);
         })
         .HasPermission(Permissions.DocumentsWrite)
-        .WithTags(Tags.Documents);
+        .WithTags(Tags.Documents)
+        .DisableAntiforgery();
     }
 }
