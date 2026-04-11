@@ -2,7 +2,6 @@
 using Domain.Documents;
 using Domain.Organizations;
 using Domain.Processing;
-using Domain.Todos;
 using Domain.Users;
 using Infrastructure.DomainEvents;
 using Microsoft.EntityFrameworkCore;
@@ -16,8 +15,6 @@ public sealed class ApplicationDbContext(
     : DbContext(options), IApplicationDbContext
 {
     public DbSet<User> Users { get; set; }
-
-    public DbSet<TodoItem> TodoItems { get; set; }
 
     public DbSet<Organization> Organizations { get; set; }
 
