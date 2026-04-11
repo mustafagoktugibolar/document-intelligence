@@ -12,6 +12,9 @@ public static class DependencyInjection
         // REMARK: If you want to use Controllers, you'll need this.
         services.AddControllers();
 
+        services.ConfigureHttpJsonOptions(o =>
+            o.SerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter()));
+
         services.AddExceptionHandler<GlobalExceptionHandler>();
         services.AddProblemDetails();
 

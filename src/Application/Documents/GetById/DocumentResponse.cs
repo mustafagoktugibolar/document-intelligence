@@ -14,6 +14,8 @@ public sealed class DocumentResponse
     public int TotalChunks { get; set; }
     public DateTime UploadedAt { get; set; }
     public List<DocumentSectionResponse> Sections { get; set; } = [];
+    public string? Summary { get; set; }
+    public string? Classification { get; set; }
 }
 
 public sealed class DocumentSectionResponse

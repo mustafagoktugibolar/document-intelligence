@@ -48,7 +48,9 @@ internal sealed class GetDocumentByIdQueryHandler(
                     StartChunkIndex = s.StartChunkIndex,
                     EndChunkIndex = s.EndChunkIndex,
                     Visibility = s.Visibility
-                }).ToList()
+                }).ToList(),
+                Summary = d.Summary,
+                Classification = d.Classification
             })
             .FirstOrDefaultAsync(cancellationToken);
 

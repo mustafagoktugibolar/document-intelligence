@@ -399,3 +399,4 @@ FodyWeavers.xsd
 
 .containers/
 src/Web.Api/appsettings.Development.json
+src/Worker/appsettings.Development.json
